@@ -39,7 +39,7 @@
 
 -   **Backend Framework:** NestJS (TypeScript)
 -   **Database:** MongoDB (with Mongoose ODM)
--   **Caching:** Redis (`@liaoliaots/nestjs-redis`)
+-   **Caching:** Redis 
 -   **Authentication:** JWT (JSON Web Tokens)
 -   **API Documentation:** Swagger
 -   **In-Memory Testing Database:** MongoMemoryServer
