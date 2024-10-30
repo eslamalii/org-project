@@ -6,7 +6,9 @@ import { CreateUserDto } from '../users/dto/create-user.dto';
 import { LoginDto } from './dto/login.dto';
 import { RefreshTokenDto } from './dto/refresh-token.dto';
 import { RevokeRefreshTokenDto } from './dto/revoke-refresh-token.dto';
+import { ApiBody, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 
+@ApiTags('Authentication')
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
@@ -20,6 +22,10 @@ export class AuthController {
    */
   @Post('signup')
   @HttpCode(HttpStatus.CREATED)
+  @ApiOperation({ summary: 'Register a new user' })
+  @ApiResponse({ status: 201, description: 'User registered successfully.' })
+  @ApiResponse({ status: 400, description: 'Bad Request.' })
+  @ApiBody({ type: CreateUserDto })
   async signup(
     @Body() createUserDto: CreateUserDto,
   ): Promise<{ message: string }> {
@@ -36,6 +42,20 @@ export class AuthController {
    */
   @Post('signin')
   @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Authenticate a user and issue JWT tokens' })
+  @ApiResponse({
+    status: 200,
+    description: 'Signin successful.',
+    schema: {
+      example: {
+        message: 'Signin successful',
+        access_token: 'jwt_access_token',
+        refresh_token: 'jwt_refresh_token',
+      },
+    },
+  })
+  @ApiResponse({ status: 401, description: 'Unauthorized.' })
+  @ApiBody({ type: LoginDto })
   async signin(
     @Body() loginDto: LoginDto,
   ): Promise<{ message: string; access_token: string; refresh_token: string }> {
@@ -53,6 +73,22 @@ export class AuthController {
    */
   @Post('refresh-token')
   @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: 'Refresh the access token using a valid refresh token',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Token refreshed successfully.',
+    schema: {
+      example: {
+        message: 'Token refreshed successfully',
+        access_token: 'new_jwt_access_token',
+        refresh_token: 'new_jwt_refresh_token',
+      },
+    },
+  })
+  @ApiResponse({ status: 400, description: 'Invalid refresh token.' })
+  @ApiBody({ type: RefreshTokenDto })
   async refreshToken(
     @Body() refreshTokenDto: RefreshTokenDto,
   ): Promise<{ message: string; access_token: string; refresh_token: string }> {
@@ -70,6 +106,13 @@ export class AuthController {
    */
   @Post('revoke-refresh-token')
   @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Revoke a refresh token' })
+  @ApiResponse({
+    status: 200,
+    description: 'Refresh token revoked successfully.',
+  })
+  @ApiResponse({ status: 400, description: 'Invalid refresh token.' })
+  @ApiBody({ type: RevokeRefreshTokenDto })
   async revokeRefreshToken(
     @Body() revokeRefreshTokenDto: RevokeRefreshTokenDto,
   ): Promise<{ message: string }> {

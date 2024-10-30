@@ -20,6 +20,14 @@ import { UpdateOrganizationDto } from './dto/update-organization.dto';
 import { InviteUserDto } from './dto/invite-user.dto';
 import { RoleGuardFactory } from '../auth/guards/role.guard';
 import { PublicRouteGuard } from '../auth/guards/public-route.guard';
+import {
+  ApiBearerAuth,
+  ApiBody,
+  ApiOperation,
+  ApiParam,
+  ApiQuery,
+  ApiResponse,
+} from '@nestjs/swagger';
 
 @Controller('organization')
 export class OrganizationsController {
@@ -35,6 +43,13 @@ export class OrganizationsController {
   @Get('accept-invite')
   @UseGuards(PublicRouteGuard)
   @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Accept an invitation to join an organization' })
+  @ApiQuery({ name: 'token', required: true, description: 'Invitation token' })
+  @ApiResponse({
+    status: 200,
+    description: 'Invitation accepted and user added to organization.',
+  })
+  @ApiResponse({ status: 400, description: 'Invalid or expired token.' })
   async acceptInvite(
     @Query('token') token: string,
   ): Promise<{ message: string }> {
@@ -53,6 +68,17 @@ export class OrganizationsController {
   @UseGuards(JwtAuthGuard, RoleGuardFactory('admin'))
   @Post()
   @HttpCode(HttpStatus.CREATED)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Create a new organization' })
+  @ApiResponse({
+    status: 201,
+    description: 'Organization created successfully.',
+    schema: {
+      example: { organization_id: 'org_12345' },
+    },
+  })
+  @ApiResponse({ status: 400, description: 'Bad Request.' })
+  @ApiBody({ type: CreateOrganizationDto })
   async createOrganization(
     @Body() createOrganizationDto: CreateOrganizationDto,
     @Request() req,
@@ -76,6 +102,15 @@ export class OrganizationsController {
   @UseGuards(JwtAuthGuard)
   @Get(':organization_id')
   @HttpCode(HttpStatus.OK)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Retrieve a specific organization by its ID' })
+  @ApiParam({ name: 'organization_id', description: 'ID of the organization' })
+  @ApiResponse({
+    status: 200,
+    description: 'Organization retrieved successfully.',
+    type: Organization,
+  })
+  @ApiResponse({ status: 404, description: 'Organization not found.' })
   async getOrganization(
     @Param('organization_id') organization_id: string,
     @Request() req,
@@ -94,6 +129,15 @@ export class OrganizationsController {
   @UseGuards(JwtAuthGuard)
   @Get()
   @HttpCode(HttpStatus.OK)
+  @ApiBearerAuth()
+  @ApiOperation({
+    summary: 'Retrieve all organizations accessible to the user',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Organizations retrieved successfully.',
+    type: [Organization],
+  })
   async getAllOrganizations(@Request() req): Promise<Organization[]> {
     const userId = req.user.userId;
     return this.organizationsService.findAll(userId);
@@ -111,6 +155,19 @@ export class OrganizationsController {
   @UseGuards(JwtAuthGuard, RoleGuardFactory('admin'))
   @Put(':organization_id')
   @HttpCode(HttpStatus.OK)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Update an existing organization' })
+  @ApiParam({
+    name: 'organization_id',
+    description: 'ID of the organization to update',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Organization updated successfully.',
+    type: Organization,
+  })
+  @ApiResponse({ status: 404, description: 'Organization not found.' })
+  @ApiBody({ type: UpdateOrganizationDto })
   async updateOrganization(
     @Param('organization_id') organization_id: string,
     @Body() updateOrganizationDto: UpdateOrganizationDto,
@@ -135,6 +192,17 @@ export class OrganizationsController {
   @UseGuards(JwtAuthGuard, RoleGuardFactory('admin'))
   @Delete(':organization_id')
   @HttpCode(HttpStatus.OK)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Delete an existing organization' })
+  @ApiParam({
+    name: 'organization_id',
+    description: 'ID of the organization to delete',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Organization deleted successfully.',
+  })
+  @ApiResponse({ status: 404, description: 'Organization not found.' })
   async deleteOrganization(
     @Param('organization_id') organization_id: string,
     @Request() req,
@@ -156,6 +224,12 @@ export class OrganizationsController {
   @UseGuards(JwtAuthGuard, RoleGuardFactory('admin'))
   @Get(':organization_id/invite')
   @HttpCode(HttpStatus.CREATED)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Invite a user to join an organization' })
+  @ApiParam({ name: 'organization_id', description: 'ID of the organization' })
+  @ApiResponse({ status: 201, description: 'Invitation sent successfully.' })
+  @ApiResponse({ status: 400, description: 'Bad Request.' })
+  @ApiBody({ type: InviteUserDto })
   async inviteUser(
     @Param('organization_id') organization_id: string,
     @Body() inviteUserDto: InviteUserDto,
