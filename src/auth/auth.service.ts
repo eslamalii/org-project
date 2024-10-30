@@ -16,7 +16,7 @@ export class AuthService {
   ) {}
 
   async signup(createUserDto: CreateUserDto): Promise<{ message: string }> {
-    await this.usersService.create(createUserDto);
+    await this.usersService.create({ ...createUserDto, access_level: 'admin' });
     return { message: 'User registered successfully' };
   }
 
